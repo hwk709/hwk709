@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CX-5 vs CX-50H vs RAV4 Hybrid — TCO Calculator</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@300;400;600;700;800;900&family=Barlow:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0c10;--panel:#13131a;--border:#1d1d28;--border2:#252533;
+  --red:#d42b2b;--red-glow:rgba(212,43,43,0.22);
+  --gold:#c8a84b;--gold-soft:rgba(200,168,75,0.1);--gold-glow:rgba(200,168,75,0.25);
+  --cx5:#3b82f6;--cx5-s:rgba(59,130,246,0.1);
+  --cx50:#d42b2b;--cx50-s:rgba(212,43,43,0.1);
+  --rav4:#0d9488;--rav4-s:rgba(13,148,136,0.1);
+  --green:#22c55e;--green-s:rgba(34,197,94,0.1);
+  --amber:#f59e0b;--purple:#a78bfa;
+  --text:#e4e4ee;--muted:#5e5e72;--muted2:#9090a8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;}
+
+header{padding:20px 30px 16px;background:linear-gradient(135deg,#0c0c10,#15101c);
+  border-bottom:1px solid var(--border);position:relative;overflow:hidden;}
+header::after{content:'';position:absolute;top:-60px;right:-60px;width:240px;height:240px;
+  border-radius:50%;background:radial-gradient(circle,rgba(212,43,43,0.12),transparent 70%);pointer-events:none;}
+.h-eye{font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:700;
+  letter-spacing:3.5px;text-transform:uppercase;color:var(--red);margin-bottom:4px;}
+header h1{font-family:'Barlow Condensed',sans-serif;font-size:clamp(19px,3.2vw,36px);
+  font-weight:900;letter-spacing:-.5px;line-height:1;}
+header h1 em{color:var(--red);font-style:normal;}
+header h1 .rav{color:var(--rav4);}
+.h-sub{margin-top:3px;font-size:11.5px;color:var(--muted2);font-weight:300;}
+
+/* ── CONTROLS ── */
+.controls{background:var(--panel);border-bottom:1px solid var(--border);
+  padding:0;display:flex;flex-direction:column;}
+.ctrl-row{display:flex;gap:16px 28px;align-items:flex-start;flex-wrap:wrap;
+  padding:14px 30px;border-bottom:1px solid var(--border);}
+.ctrl-row:last-child{border-bottom:none;}
+.ctrl-lbl{font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:700;
+  letter-spacing:3px;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px;}
+.ctrl-lbl.gold{color:var(--gold);}
+
+/* Down payment */
+.dp-wrap{display:flex;align-items:center;background:var(--bg);border:1px solid var(--border2);
+  border-radius:7px;overflow:hidden;height:36px;width:140px;}
+.dp-sym{padding:0 8px;font-size:13px;font-weight:600;color:var(--muted2);
+  border-right:1px solid var(--border2);height:100%;display:flex;align-items:center;user-select:none;}
+.dp-in{background:transparent;border:none;outline:none;color:var(--text);
+  font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:700;
+  width:100%;padding:0 8px;-moz-appearance:textfield;}
+.dp-in::-webkit-outer-spin-button,.dp-in::-webkit-inner-spin-button{-webkit-appearance:none;}
+
+/* Button groups */
+.btn-group{display:flex;gap:3px;flex-wrap:wrap;}
+.tbtn{font-family:'Barlow Condensed',sans-serif;font-size:12px;font-weight:700;
+  padding:6px 11px;border-radius:6px;border:1px solid var(--border2);
+  cursor:pointer;background:var(--bg);color:var(--muted2);transition:all .14s;}
+.tbtn:hover{border-color:var(--muted2);color:var(--text);}
+.tbtn.term-active{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 1px 8px var(--red-glow);}
+.tbtn.yr-active{background:var(--gold);border-color:var(--gold);color:#000;font-weight:800;
+  box-shadow:0 1px 8px var(--gold-glow);}
+
+/* Rate slider */
+.ctrl-rate{min-width:180px;flex:1;}
+.rate-row{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:5px;}
+.rate-val{font-family:'Barlow Condensed',sans-serif;font-size:20px;font-weight:800;color:var(--gold);}
+.rate-val span{font-size:12px;font-weight:400;color:var(--muted2);}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:4px;border-radius:2px;
+  outline:none;cursor:pointer;
+  background:linear-gradient(to right,var(--gold) 0%,var(--gold) var(--pct,36.67%),var(--border2) var(--pct,36.67%),var(--border2) 100%);}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:15px;height:15px;border-radius:50%;
+  background:var(--gold);border:3px solid var(--bg);box-shadow:0 0 0 2px var(--gold);cursor:pointer;}
+input[type=range]::-webkit-slider-thumb:hover{box-shadow:0 0 0 4px rgba(200,168,75,.3);}
+input[type=range]::-moz-range-thumb{width:15px;height:15px;border-radius:50%;background:var(--gold);border:3px solid var(--bg);cursor:pointer;}
+
+/* ── TRIM SELECT ── */
+.trim-sel-wrap{position:relative;margin-top:8px;background:rgba(0,0,0,.3);
+  border:1px solid var(--border2);border-radius:7px;overflow:hidden;}
+.trim-sel-wrap::after{content:'▾';position:absolute;right:8px;top:50%;transform:translateY(-50%);
+  font-size:10px;color:var(--muted2);pointer-events:none;}
+.trim-sel{width:100%;background:transparent;border:none;outline:none;
+  color:var(--text);font-family:'Barlow Condensed',sans-serif;font-size:12.5px;font-weight:700;
+  padding:7px 24px 7px 9px;cursor:pointer;-webkit-appearance:none;appearance:none;}
+.trim-sel option{background:#1a1a24;color:var(--text);font-family:sans-serif;}
+.feat-line{font-size:9.5px;color:var(--muted2);line-height:1.5;margin-top:5px;
+  padding:4px 8px;background:rgba(0,0,0,.2);border-radius:4px;border-left:2px solid var(--border2);}
+
+/* ── MAIN GRID ── */
+.grid{padding:16px 30px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:13px;}
+@media(max-width:1040px){.grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:640px){.grid{grid-template-columns:1fr;padding:10px 12px;}}
+@media(max-width:480px){.ctrl-row{padding:10px 12px;}}
+
+/* ── CARD ── */
+.vcard{background:var(--panel);border:1px solid var(--border);border-radius:11px;overflow:hidden;transition:border-color .3s,box-shadow .3s;}
+.vcard.eq-pos{border-color:rgba(34,197,94,.28);}
+.vcard.eq-neg{border-color:rgba(239,68,68,.4);}
+.vcard.winner-card{box-shadow:0 0 0 2px var(--green),0 4px 20px rgba(34,197,94,.12);}
+
+.vc-head{padding:11px 15px 9px;border-bottom:1px solid var(--border);}
+.hd-cx5{background:linear-gradient(135deg,var(--cx5-s),transparent 70%);}
+.hd-cx50{background:linear-gradient(135deg,var(--cx50-s),transparent 70%);}
+.hd-rav4{background:linear-gradient(135deg,var(--rav4-s),transparent 70%);}
+.vc-badge{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;letter-spacing:3px;text-transform:uppercase;margin-bottom:1px;}
+.bd-cx5{color:var(--cx5);}.bd-cx50{color:var(--cx50);}.bd-rav4{color:var(--rav4);}
+.vc-name{font-family:'Barlow Condensed',sans-serif;font-size:24px;font-weight:900;line-height:1;}
+.vc-sub{font-size:10px;color:var(--muted2);margin-top:2px;}
+.vc-tags{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap;}
+.tag{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:1.5px;
+  text-transform:uppercase;padding:2px 6px;border-radius:3px;font-weight:700;}
+.t-grn{background:var(--green-s);color:var(--green);border:1px solid rgba(34,197,94,.25);}
+.t-blu{background:var(--cx5-s);color:var(--cx5);border:1px solid rgba(59,130,246,.25);}
+.t-red{background:var(--cx50-s);color:var(--cx50);border:1px solid rgba(212,43,43,.25);}
+.t-tea{background:var(--rav4-s);color:var(--rav4);border:1px solid rgba(13,148,136,.25);}
+.t-amb{background:rgba(245,158,11,.1);color:var(--amber);border:1px solid rgba(245,158,11,.25);}
+.t-wrn{background:rgba(239,68,68,.12);color:#ef4444;border:1px solid rgba(239,68,68,.3);}
+
+.vc-pmt{padding:9px 15px 7px;border-bottom:1px solid var(--border);display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;}
+.pmt-big{font-family:'Barlow Condensed',sans-serif;font-size:40px;font-weight:900;line-height:1;}
+.pmt-meta{font-size:10.5px;color:var(--muted2);padding-bottom:6px;}
+.vc-pl{padding:0 15px 8px;font-size:10.5px;color:var(--muted2);}
+.vc-pl strong{color:var(--text);}
+
+.vc-stats{display:grid;grid-template-columns:repeat(3,1fr);border-bottom:1px solid var(--border);}
+.stat{padding:8px 7px;text-align:center;border-right:1px solid var(--border);}
+.stat:last-child{border-right:none;}
+.st-lbl{font-family:'Barlow Condensed',sans-serif;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:2px;}
+.st-val{font-family:'Barlow Condensed',sans-serif;font-size:13px;font-weight:800;line-height:1;}
+.st-val.pos{color:var(--green);}.st-val.neg{color:#ef4444;}
+
+.vc-bk{padding:10px 15px;}
+.bk-ttl{font-family:'Barlow Condensed',sans-serif;font-size:9px;letter-spacing:2.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:8px;}
+.brow{margin-bottom:7px;}
+.brow-top{display:flex;justify-content:space-between;font-size:10.5px;margin-bottom:3px;}
+.brow-top .bl{color:var(--muted2);}.brow-top .bv{font-weight:600;font-size:11px;}
+.btrack{height:5px;background:var(--border2);border-radius:3px;overflow:hidden;}
+.bfill{height:100%;border-radius:3px;transition:width .65s cubic-bezier(.4,0,.2,1);}
+
+.vc-tots{padding:9px 15px 12px;}
+.tots-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;}
+.tcell{background:var(--bg);border-radius:7px;padding:8px 7px;text-align:center;border:1px solid var(--border);}
+.tcell.h-grn{border-color:rgba(34,197,94,.3);background:rgba(34,197,94,.04);}
+.tcell.h-red{border-color:rgba(239,68,68,.3);background:rgba(239,68,68,.04);}
+.t-lbl{font-family:'Barlow Condensed',sans-serif;font-size:8px;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:3px;}
+.t-val{font-family:'Barlow Condensed',sans-serif;font-size:18px;font-weight:800;line-height:1;}
+.t-val.grn{color:var(--green);}.t-val.red{color:#ef4444;}
+
+/* ── FULL WIDTH ── */
+.full{grid-column:1/-1;}
+
+/* ── BREAK EVEN ── */
+.becard{background:var(--panel);border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+.be-hd{padding:10px 18px 9px;border-bottom:1px solid var(--border);
+  background:linear-gradient(135deg,rgba(200,168,75,.07),transparent 60%);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;}
+.be-hd h2{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;}
+.be-hd h2 em{color:var(--gold);font-style:normal;}
+.be-note{font-size:10.5px;color:var(--muted2);}
+.be-body{padding:14px 18px;display:flex;flex-direction:column;gap:12px;}
+.be-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;}
+.be-lbl{font-family:'Barlow Condensed',sans-serif;font-size:11px;font-weight:700;width:100px;flex-shrink:0;}
+.be-timeline{flex:1;min-width:200px;}
+.yr-cells{display:grid;grid-template-columns:repeat(8,1fr);gap:3px;}
+.yr-cell{
+  border-radius:4px;padding:5px 2px;text-align:center;
+  border:1px solid var(--border2);
+  transition:all .3s;position:relative;
+  font-family:'Barlow Condensed',sans-serif;
+}
+.yr-cell .yc-yr{font-size:9px;font-weight:700;color:var(--muted);display:block;letter-spacing:.5px;}
+.yr-cell .yc-diff{font-size:11px;font-weight:800;display:block;margin-top:1px;}
+.yr-cell.cx5-wins{background:rgba(59,130,246,.08);border-color:rgba(59,130,246,.25);}
+.yr-cell.cx5-wins .yc-diff{color:var(--cx5);}
+.yr-cell.hybrid-wins{background:rgba(34,197,94,.06);border-color:rgba(34,197,94,.25);}
+.yr-cell.hybrid-wins .yc-diff{color:var(--green);}
+.yr-cell.break-yr{border-color:var(--gold)!important;background:rgba(200,168,75,.1)!important;
+  box-shadow:0 0 0 1px var(--gold);}
+.yr-cell.break-yr .yc-yr{color:var(--gold);}
+.yr-cell.cur-yr{outline:2px solid var(--gold);outline-offset:1px;}
+.be-result{font-family:'Barlow Condensed',sans-serif;font-size:12px;margin-top:4px;color:var(--muted2);}
+.be-result strong{font-weight:800;}
+.be-result.good strong{color:var(--green);}
+.be-result.bad strong{color:var(--muted2);}
+
+/* ── COMPARE ── */
+.ccard{background:var(--panel);border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+.cc-hd{padding:10px 18px 9px;border-bottom:1px solid var(--border);background:linear-gradient(135deg,var(--gold-soft),transparent 60%);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;}
+.cc-hd h2{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;}
+.cc-hd h2 em{color:var(--gold);font-style:normal;}
+.sv-badge{font-family:'Barlow Condensed',sans-serif;font-size:10.5px;font-weight:800;letter-spacing:1px;
+  padding:3px 11px;border-radius:5px;background:var(--green-s);border:1px solid rgba(34,197,94,.3);color:var(--green);}
+.cc-body{padding:11px 18px;display:flex;flex-direction:column;gap:8px;}
+.crow{display:flex;align-items:center;gap:8px;}
+.crow-lbl{font-size:10.5px;color:var(--muted2);width:115px;flex-shrink:0;}
+.crow-bars{flex:1;display:flex;flex-direction:column;gap:2px;}
+.cbar-row{display:flex;align-items:center;gap:5px;}
+.cbar-lbl{font-family:'Barlow Condensed',sans-serif;font-size:9px;font-weight:700;width:40px;flex-shrink:0;}
+.cbar-track{flex:1;height:7px;background:var(--border2);border-radius:4px;overflow:hidden;}
+.cbar-fill{height:100%;border-radius:4px;transition:width .7s cubic-bezier(.4,0,.2,1);}
+.cbar-val{font-family:'Barlow Condensed',sans-serif;font-size:11.5px;font-weight:700;min-width:56px;text-align:right;}
+.win-dot{color:var(--green);font-size:10px;margin-left:2px;}
+
+/* ── VERDICT ── */
+.vdct{background:var(--panel);border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+.vd-hd{padding:10px 18px 9px;border-bottom:1px solid var(--border);
+  background:linear-gradient(135deg,rgba(212,43,43,.05),transparent 60%);
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;}
+.vd-hd h2{font-family:'Barlow Condensed',sans-serif;font-size:15px;font-weight:800;}
+.vd-hd h2 em{font-style:normal;}
+.trophy-badge{font-family:'Barlow Condensed',sans-serif;font-size:9.5px;font-weight:800;letter-spacing:1.5px;
+  text-transform:uppercase;padding:3px 11px;border-radius:4px;border:1px solid;}
+.vd-grid{display:grid;grid-template-columns:repeat(3,1fr);}
+@media(max-width:600px){.vd-grid{grid-template-columns:1fr;}}
+.vd-col{padding:12px 14px;border-right:1px solid var(--border);}
+.vd-col:last-child{border-right:none;}
+.vd-col h3{font-family:'Barlow Condensed',sans-serif;font-size:9.5px;letter-spacing:2px;
+  text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:6px;}
+.vd-col p{font-size:11px;color:var(--muted2);line-height:1.6;font-weight:300;}
+.vd-col p strong{color:var(--text);font-weight:600;}
+
+.note{padding:9px 30px 18px;font-size:9.5px;color:var(--muted);line-height:1.7;}
+@media(max-width:480px){.note{padding:9px 12px 18px;}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="h-eye">True Cost of Ownership · Live Calculator</div>
+  <h1><em>CX-5</em> vs CX-50 Hybrid vs <span class="rav">RAV4 Hybrid 2026</span></h1>
+  <p class="h-sub">Select trim · Down payment · Loan term · Rate · Ownership period — everything updates live</p>
+</header>
+
+<!-- ── ROW 1: Finance controls ── -->
+<div class="controls">
+  <div class="ctrl-row">
+    <div>
+      <span class="ctrl-lbl">Down Payment</span>
+      <div class="dp-wrap">
+        <div class="dp-sym">$</div>
+        <input class="dp-in" type="number" id="dpIn" value="0" min="0" max="60000" step="500" oninput="recalc()">
+      </div>
+    </div>
+    <div>
+      <span class="ctrl-lbl">Loan Term</span>
+      <div class="btn-group">
+        <button class="tbtn" onclick="setTerm(36,this)">36 mo</button>
+        <button class="tbtn" onclick="setTerm(48,this)">48 mo</button>
+        <button class="tbtn term-active" onclick="setTerm(60,this)">60 mo</button>
+        <button class="tbtn" onclick="setTerm(72,this)">72 mo</button>
+        <button class="tbtn" onclick="setTerm(84,this)">84 mo</button>
+      </div>
+    </div>
+    <div class="ctrl-rate">
+      <span class="ctrl-lbl">Interest Rate (APR)</span>
+      <div class="rate-row">
+        <span class="rate-val" id="rateDisp">5.50<span>%</span></span>
+        <span style="font-size:9.5px;color:var(--muted)">0% — 15%</span>
+      </div>
+      <input type="range" id="rateSlider" min="0" max="15" step="0.25" value="5.5" oninput="onRate(this)">
+    </div>
+  </div>
+
+  <!-- ── ROW 2: Ownership year selector ── -->
+  <div class="ctrl-row">
+    <div style="display:flex;flex-direction:column;gap:6px;">
+      <span class="ctrl-lbl gold">Ownership Period</span>
+      <div class="btn-group" id="yrGroup">
+        <button class="tbtn" onclick="setYear(1,this)">1 yr</button>
+        <button class="tbtn" onclick="setYear(2,this)">2 yr</button>
+        <button class="tbtn yr-active" onclick="setYear(3,this)">3 yr</button>
+        <button class="tbtn" onclick="setYear(4,this)">4 yr</button>
+        <button class="tbtn" onclick="setYear(5,this)">5 yr</button>
+        <button class="tbtn" onclick="setYear(6,this)">6 yr</button>
+        <button class="tbtn" onclick="setYear(7,this)">7 yr</button>
+        <button class="tbtn" onclick="setYear(8,this)">8 yr</button>
+      </div>
+    </div>
+    <div style="display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;padding-bottom:1px;">
+      <div id="periodSummary" style="font-size:11px;color:var(--muted2);line-height:1.6;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ── GRID ── -->
+<div class="grid">
+
+  <!-- CX-5 -->
+  <div class="vcard" id="crd_cx5">
+    <div class="vc-head hd-cx5">
+      <div class="vc-badge bd-cx5">Mazda</div>
+      <div class="vc-name">CX-5</div>
+      <div class="vc-sub" id="sub_cx5">2.5 S Preferred · AWD · 187 hp</div>
+      <div class="trim-sel-wrap" style="border-color:rgba(59,130,246,.3);">
+        <select class="trim-sel" id="sel_cx5" onchange="onTrim('cx5',this.value)">
+          <option value="0">2.5 S — Base</option>
+          <option value="1">2.5 S Select</option>
+          <option value="2" selected>2.5 S Preferred ★</option>
+          <option value="3">2.5 S Carbon Edition</option>
+          <option value="4">2.5 S Premium</option>
+          <option value="5">2.5 S Premium Plus</option>
+          <option value="6">2.5 Turbo Premium</option>
+          <option value="7">2.5 Turbo Signature — Top</option>
+        </select>
+      </div>
+      <div class="feat-line" id="feat_cx5">Panoramic roof · Leatherette · Heated seats/steering · Bose audio · Wireless CarPlay</div>
+      <div class="vc-tags" style="margin-top:6px;">
+        <span class="tag t-blu" id="mpgTag_cx5">28 MPG</span>
+        <span class="tag t-grn" id="etag_cx5">+$— equity</span>
+      </div>
+    </div>
+    <div class="vc-pmt">
+      <div class="pmt-big" id="pmt_cx5">—</div>
+      <div class="pmt-meta">/mo · <span id="trm_cx5">60</span>mo @ <span id="rt_cx5">5.50</span>%</div>
+    </div>
+    <div class="vc-pl">MSRP <strong id="m_cx5">$32,800</strong> + <strong id="d_cx5">$1,530</strong> → <strong id="tot_cx5">$34,330</strong> · Financed: <strong id="fin_cx5">$34,330</strong></div>
+    <div class="vc-stats">
+      <div class="stat"><div class="st-lbl" id="reslbl_cx5">3-Yr Residual</div><div class="st-val" id="res_cx5">—</div></div>
+      <div class="stat"><div class="st-lbl" id="ballbl_cx5">Bal @ 36mo</div><div class="st-val" id="bal_cx5">—</div></div>
+      <div class="stat"><div class="st-lbl">Equity @ Sell</div><div class="st-val" id="eq_cx5">—</div></div>
+    </div>
+    <div class="vc-bk">
+      <div class="bk-ttl" id="bkttl_cx5">3-Year Breakdown</div>
+      <div class="brow"><div class="brow-top"><span class="bl">Net Financing Loss</span><span class="bv" id="bfin_cx5">—</span></div>
+        <div class="btrack"><div class="bfill" id="bf_cx5" style="background:var(--cx5);width:0%"></div></div></div>
+      <div class="brow"><div class="brow-top"><span class="bl" id="fuelLbl_cx5">Fuel · 28 MPG</span><span class="bv" id="fuelAmt_cx5">—</span></div>
+        <div class="btrack"><div class="bfill" id="fuelBf_cx5" style="background:var(--purple);width:0%"></div></div></div>
+      <div class="brow"><div class="brow-top"><span class="bl">Insurance</span><span class="bv" id="insAmt_cx5">—</span></div>
+        <div class="btrack"><div class="bfill" id="insBf_cx5" style="background:var(--amber);width:0%"></div></div></div>
+      <div class="brow"><div class="brow-top"><span class="bl">Maintenance + Reg</span><span class="bv" id="miscAmt_cx5">—</span></div>
+        <div class="btrack"><div class="bfill" id="miscBf_cx5" style="background:var(--green);width:0%"></div></div></div>
+    </div>
+    <div class="vc-tots">
+      <div class="tots-grid">
+        <div class="tcell"><div class="t-lbl" id="paidlbl_cx5">Paid × 36 mo</div><div class="t-val" id="paid_cx5">—</div></div>
+        <div class="tcell"><div class="t-lbl">Remaining Loan</div><div class="t-val" id="rem_cx5">—</div></div>
+        <div class="tcell h-grn" id="eqcell_cx5"><div class="t-lbl">Equity at Trade</div><div class="t-val grn" id="eq2_cx5">—</div></div>
+        <div class="tcell h-grn" id="tcocell_cx5"><div class="t-lbl" id="tcolbl_cx5">3-Yr True Cost</div><div class="t-val grn" id="tco_cx5">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CX-50 Hybrid -->
+  <div class="vcard" id="crd_cx50">
+    <div class="vc-head hd-cx50">
+      <div class="vc-badge bd-cx50">Mazda</div>
+      <div class="vc-name">CX-50 Hybrid</div>
+      <div class="vc-sub" id="sub_cx50">Hybrid Preferred · e-AWD · 219 hp</div>
+      <div class="trim-sel-wrap" style="border-color:rgba(212,43,43,.35);">
+        <select class="trim-sel" id="sel_cx50" onchange="onTrim('cx50',this.value)">
+          <option value="0" selected>Hybrid Preferred ★</option>
+          <option value="1">Hybrid Premium</option>
+          <option value="2">Hybrid Premium Plus — Top</option>
+        </select>
+      </div>
+      <div class="feat-line" id="feat_cx50">Leatherette · Heated seats/steering · Panoramic roof · Wireless CarPlay · 38 MPG</div>
+      <div class="vc-tags" style="margin-top:6px;">
+        <span class="tag t-red">38 MPG</span>
+        <span class="tag t-amb">⚡ Toyota Hybrid</span>
+        <span class="tag t-grn" id="etag_cx50">+$— equity</span>
+      </div>
+    </div>
+    <div class="vc-pmt">
+      <div class="pmt-big" id="pmt_cx50">—</div>
+      <div class="pmt-meta">/mo · <span id="trm_cx50">60</span>mo @ <span id="rt_cx50">5.50</span>%</div>
+    </div>
+    <div class="vc-pl">MSRP <strong id="m_cx50">$34,750</strong> + <strong id="d_cx50">$1,495</strong> → <strong id="tot_cx50">$36,245</strong> · Financed: <strong id="fin_cx50">$36,245</strong></div>
+    <div class="vc-stats">
+      <div class="stat"><div class="st-lbl" id="reslbl_cx50">3-Yr Residual</div><div class="st-val" id="res_cx50">—</div></div>
+      <div class="stat"><div class="st-lbl" id="ballbl_cx50">Bal @ 36mo</div><div class="st-val" id="bal_cx50">—</div></div>
+      <div class="stat"><div class="st-lbl">Equity @ Sell</div><div class="st-val" id="eq_cx50">—</div></div>
+    </div>
+    <div class="vc-bk">
+      <div class="bk-ttl" id="bkttl_cx50">3-Year Breakdown</div>
+      <div class="brow"><div class="brow-top"><span class="bl">Net Financing Loss</span><span class="bv" id="bfin_cx50">—</span></div>
+        <div class="btrack"><div class="bfill" id="bf_cx50" style="background:var(--cx50);width:0%"></div></div></div>
+      <div class="brow"><div class="brow-top"><span class="bl">Fuel · 38 MPG</span><span class="bv" id="fuelAmt_cx50">—</span></div>
+        <div class="btrack"><div class="bfill" id="fuelBf_cx50" style="background:var(--purple);width:0%"></div></div></div>
+      <div class="brow"><div class="brow-top"><span class="bl">Insurance</span><span class="bv" id="insAmt_cx50">—</span></div>
+        <div class="btrack"><div class="bfill" id="insBf_cx50" style="background:var(--amber);width:0%"></div></div></div>
+      <div class="brow"><div class="brow-top"><span class="bl">Maintenance + Reg</span><span class="bv" id="miscAmt_cx50">—</span></div>
+        <div class="btrack"><div class="bfill" id="miscBf_cx50" style="background:var(--green);width:0%"></div></div></div>
+    </div>
+    <div class="vc-tots">
+      <div class="tots-grid">
+        <div class="tcell"><div class="t-lbl" id="paidlbl_cx50">Paid × 36 mo</div><div class="t-val" id="paid_cx50">—</div></div>
+        <div class="tcell"><div class="t-lbl">Remaining Loan</div><div class="t-val" id="rem_cx50">—</div></div>
+        <div class="tcell h-grn" id="eqcell_cx50"><div class="t-lbl">Equity at Trade</div><div class="t-val grn" id="eq2_cx50">—</div></div>
+        <div class="tcell h-grn" id="tcocell_cx50"><div class="t-lbl" id="tcolbl_cx50">3-Yr True Cost</div><div class="t-val grn" id="tco_cx50">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RAV4 Hybrid -->
+  <div class="vcard" id="crd_rav4">
+    <div class="vc-head hd-rav4">
+      <div class="vc-badge bd-rav4">Toyota · 2026</div>
+      <div class="vc-name">RAV4 Hybrid</div>
+      <div class="vc-sub" id="sub_rav4">XLE Premium AWD · 236 hp · All-Hybrid</div>
+      <div class="trim-sel-wrap" style="border-color:rgba(13,148,136,.35);">
+        <select class="trim-sel" id="sel_rav4" onchange="onTrim('rav4',this.value)">
+          <option value="0">LE FWD — Base</option>
+          <option value="1">LE AWD</option>
+          <option value="2">SE AWD — Sport</option>
+          <option value="3" selected>XLE Premium AWD ★</option>
+          <option value="4">Woodland AWD — Rugged</option>
+          <option value="5">XSE AWD — Sport+</option>
+          <option value="6">Limited AWD — Top</option>
+        </select>
+      </div>
+      <div class="feat-line" id="feat_rav4">SofTex heated seats · Power moonroof · Wireless charging · 12.9" touchscreen · Dual-zone climate · TSS 4.0</div>
+      <div class="vc-tags" style="margin-top:6px;">
+        <span class="tag t-tea" id="mpgTag_rav4">44 MPG</span>
+        <span class="tag t-tea">⚡ Gen 6 Hybrid</span>
+        <span class="tag t-grn" id="etag_rav4">+$— equity</span>
+      </div>
+    </div>
+    <div class="vc-pmt">
+      <div class="pmt-big" id="pmt_rav4">—</div>
+      <div class="pmt-meta">/mo · <span id="trm_rav4">60</span>mo @ <span id="rt_rav4">5.50</span>%</div>
+    </div>
+    <div class="vc-pl">MSRP <strong id="m_rav4">$37,500</strong> + <strong id="d_rav4">$1,450</strong> → <strong id="tot_rav4">$38,950</strong> · Financed: <strong id="fin_rav4">$38,950</strong></div>
+    <div class="vc-stats">
+      <div class="stat"><div class="st-lbl" id="reslbl_rav4">3-Yr Residual</div><div class="st-val" id="res_rav4">—</div></div>
+      <div class="stat"><div class="st-lbl" id="ballbl_rav4">Bal @ 36mo</div><div class="st-val" id="bal_rav4">—</div></div>
+      <div class="stat"><div class="st-lbl">Equity @ Sell</div><div class="st-val" id="eq_rav4">—</div></div>
+    </div>
+    <div class="vc-bk">
+      <div class="bk-ttl" id="bkttl_rav4">3-Year Breakdown</div>
+      <div class="brow"><div class="brow-top"><span class="bl">Net Financing Loss</span><span class="bv" id="bfin_rav4">—</span></div>
+        <div class="btrack"><div class="bfill" id="bf_rav4" style="background:var(--rav4);width:0%"></div></div></div>
+      <div class="brow"><div class="brow-top"><span class="bl" id="fuelLbl_rav4">Fuel · 44 MPG</span><span class="bv" id="fuelAmt_rav4">—</span></div>
+        <div class="btrack"><div class="bfill" id="fuelBf_rav4" style="background:var(--purple);width:0%"></div></div></div>
+      <div class="brow"><div class="brow-top"><span class="bl">Insurance</span><span class="bv" id="insAmt_rav4">—</span></div>
+        <div class="btrack"><div class="bfill" id="insBf_rav4" style="background:var(--amber);width:0%"></div></div></div>
+      <div class="brow"><div class="brow-top"><span class="bl">Maintenance + Reg</span><span class="bv" id="miscAmt_rav4">—</span></div>
+        <div class="btrack"><div class="bfill" id="miscBf_rav4" style="background:var(--green);width:0%"></div></div></div>
+    </div>
+    <div class="vc-tots">
+      <div class="tots-grid">
+        <div class="tcell"><div class="t-lbl" id="paidlbl_rav4">Paid × 36 mo</div><div class="t-val" id="paid_rav4">—</div></div>
+        <div class="tcell"><div class="t-lbl">Remaining Loan</div><div class="t-val" id="rem_rav4">—</div></div>
+        <div class="tcell h-grn" id="eqcell_rav4"><div class="t-lbl">Equity at Trade</div><div class="t-val grn" id="eq2_rav4">—</div></div>
+        <div class="tcell h-grn" id="tcocell_rav4"><div class="t-lbl" id="tcolbl_rav4">3-Yr True Cost</div><div class="t-val grn" id="tco_rav4">—</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── HYBRID BREAK-EVEN ── -->
+  <div class="full">
+    <div class="becard">
+      <div class="be-hd">
+        <h2>⚡ Hybrid Break-Even vs <em>CX-5 Baseline</em></h2>
+        <span class="be-note" id="beNote">When does the hybrid pay off vs your selected CX-5 trim?</span>
+      </div>
+      <div class="be-body">
+        <!-- CX-50H row -->
+        <div class="be-row">
+          <div class="be-lbl" style="color:var(--cx50)">CX-50 Hybrid<br><span style="color:var(--muted2);font-size:9px;font-weight:400;font-family:'Barlow',sans-serif;" id="be50trimLbl">vs CX-5 Preferred</span></div>
+          <div class="be-timeline">
+            <div class="yr-cells" id="beTimeline50"></div>
+            <div class="be-result" id="beResult50"></div>
+          </div>
+        </div>
+        <!-- RAV4 row -->
+        <div class="be-row">
+          <div class="be-lbl" style="color:var(--rav4)">RAV4 Hybrid<br><span style="color:var(--muted2);font-size:9px;font-weight:400;font-family:'Barlow',sans-serif;" id="beRav4trimLbl">vs CX-5 Preferred</span></div>
+          <div class="be-timeline">
+            <div class="yr-cells" id="beTimelineRav4"></div>
+            <div class="be-result" id="beResultRav4"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── COMPARISON ── -->
+  <div class="full">
+    <div class="ccard">
+      <div class="cc-hd">
+        <h2>Head-to-Head: <em>All 3 Compared</em></h2>
+        <span class="sv-badge" id="svBadge">—</span>
+      </div>
+      <div class="cc-body" id="compBody"></div>
+    </div>
+  </div>
+
+  <!-- ── VERDICT ── -->
+  <div class="full">
+    <div class="vdct">
+      <div class="vd-hd">
+        <h2 id="vTitle">Verdict</h2>
+        <span class="trophy-badge" id="trophyBadge" style="color:var(--green);border-color:rgba(34,197,94,.3);background:var(--green-s)">🏆 —</span>
+      </div>
+      <div class="vd-grid">
+        <div class="vd-col">
+          <h3>💰 Best for Short Hold (1–3 yr)</h3>
+          <p><strong>CX-5 Preferred wins on lowest TCO</strong> at 1–3 years in most scenarios. Lower sticker means less capital at risk. Hybrid break-even usually lands at Year 4–6, so flipping before then favors the CX-5.<br><br>Exception: if the RAV4 or CX-50H trim is close in price to your CX-5 trim, the gap narrows quickly.</p>
+        </div>
+        <div class="vd-col">
+          <h3>⚡ Best for Mid Hold (4–6 yr)</h3>
+          <p>The <strong>RAV4 Hybrid typically breaks even first</strong> due to 44 MPG and the best resale in class (~18% 3-yr depreciation). Strong federal hybrid demand keeps residuals high long-term.<br><br>The CX-50 Hybrid breaks even slightly later — its 38 MPG saves ~$361/yr vs CX-5 but costs ~$1,900 more upfront.</p>
+        </div>
+        <div class="vd-col">
+          <h3>🔋 Best for Long Hold (7–8 yr)</h3>
+          <p><strong>RAV4 Hybrid dominates</strong> at 7–8 years — fuel savings compound (~$1,496/yr vs CX-5), depreciation curve flattens, and Toyota's legendary reliability minimizes repair costs beyond warranty.<br><br>Watch the break-even timeline shift as you change trim combos — a premium RAV4 vs base CX-5 may never break even. Match trim tiers for a fair comparison.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="note">
+  * 2026 RAV4 prices include $1,450 destination. Mazda 2025 MSRPs per Mazda USA/Edmunds. Depreciation curves: CX-5 from iSeeCars (yr3=21.5%, yr5=37.9%, yr7=46.8%); CX-50 Hybrid estimated (yr3=20%); RAV4 Hybrid estimated best-in-class (yr3=18%, yr5=29.5%). Fuel at $3.20/gal · 12,000 mi/yr. Insurance estimated Virginia rates by trim tier. Break-even = year when cumulative hybrid TCO ≤ CX-5 TCO. Not financial advice.
+</div>
+
+<script>
+// ══════════════════════════════════════════════
+//  DEPRECIATION CURVES (year 1–8, as % lost)
+// ══════════════════════════════════════════════
+const DEP = {
+  cx5:  [.095,.170,.215,.270,.379,.430,.468,.520],
+  cx50: [.075,.145,.200,.255,.310,.360,.400,.440],
+  rav4: [.095,.165,.205,.238,.295,.335,.380,.425],
+};
+
+// ══════════════════════════════════════════════
+//  TRIM DATA  (insYr, miscYr = ANNUAL costs)
+// ══════════════════════════════════════════════
+const TRIMS = {
+  cx5:[
+    {name:'2.5 S',               sub:'Base · AWD · 187 hp',            msrp:28770,dest:1530,mpg:28,insYr:1300,miscYr:467,
+     feat:'Cloth seats · 17" alloys · 187 hp · i-Activ AWD · Full safety suite'},
+    {name:'2.5 S Select',        sub:'Select · AWD · 187 hp',           msrp:30295,dest:1530,mpg:28,insYr:1350,miscYr:467,
+     feat:'Leatherette · Power driver seat · Heated front seats · LED headlights'},
+    {name:'2.5 S Preferred',     sub:'Preferred · AWD · 187 hp',        msrp:32800,dest:1530,mpg:28,insYr:1400,miscYr:467,
+     feat:'Panoramic moonroof · Heated steering · Bose 10-spkr · Wireless CarPlay/AA · 19" wheels'},
+    {name:'2.5 S Carbon Edition', sub:'Carbon Edition · AWD · 187 hp',  msrp:32800,dest:1530,mpg:28,insYr:1400,miscYr:467,
+     feat:'Exclusive Polymetal Gray · 19" gloss-black wheels · Red leather interior'},
+    {name:'2.5 S Premium',       sub:'Premium · AWD · 187 hp',          msrp:35320,dest:1530,mpg:28,insYr:1467,miscYr:467,
+     feat:'Leather seats · Ventilated front seats · HUD · Traffic Sign Recognition'},
+    {name:'2.5 S Premium Plus',  sub:'Premium Plus · AWD · 187 hp',     msrp:37120,dest:1530,mpg:28,insYr:1517,miscYr:467,
+     feat:'360° surround monitor · Blind spot intervention · Rear parking sensors'},
+    {name:'2.5 Turbo Premium',   sub:'Turbo · AWD · 256 hp',            msrp:38470,dest:1530,mpg:24,insYr:1583,miscYr:467,
+     feat:'256 hp turbo · Sport + Off-road Mi-Drive · All Premium Plus features'},
+    {name:'2.5 Turbo Signature', sub:'Turbo Signature · AWD · 256 hp',  msrp:40600,dest:1530,mpg:24,insYr:1650,miscYr:467,
+     feat:'Nappa leather · Rosewood trim · HUD · Full driver assist suite · Top trim'},
+  ],
+  cx50:[
+    {name:'Hybrid Preferred',    sub:'Hybrid Preferred · e-AWD · 219 hp',    msrp:34750,dest:1495,mpg:38,insYr:1600,miscYr:500,
+     feat:'219 hp · 38 MPG · e-AWD · Leatherette · Heated seats/steering · Panoramic roof · Wireless CarPlay'},
+    {name:'Hybrid Premium',      sub:'Hybrid Premium · e-AWD · 219 hp',      msrp:38095,dest:1495,mpg:38,insYr:1717,miscYr:500,
+     feat:'Leather seats · Ventilated seats · Bose 12-spkr · HUD · Traffic Sign Recognition'},
+    {name:'Hybrid Premium Plus', sub:'Hybrid Premium Plus · e-AWD · 219 hp', msrp:40550,dest:1495,mpg:38,insYr:1800,miscYr:500,
+     feat:'360° surround view · Memory seats · Auto-dim mirrors · Parking sensors · Top trim'},
+  ],
+  rav4:[
+    {name:'LE FWD',           sub:'LE · FWD · 226 hp · Hybrid',        msrp:31900,dest:1450,mpg:44,insYr:1400,miscYr:400,
+     feat:'226 hp FWD · 10.5" touchscreen · 12.3" digital cluster · TSS 4.0 · Wireless CarPlay/AA · 17" alloys'},
+    {name:'LE AWD',           sub:'LE · AWD · 236 hp · Hybrid',         msrp:33300,dest:1450,mpg:44,insYr:1450,miscYr:400,
+     feat:'236 hp AWD · All LE standard features + AWD traction system'},
+    {name:'SE AWD',           sub:'SE · AWD · 236 hp · Sport',          msrp:34700,dest:1450,mpg:44,insYr:1517,miscYr:400,
+     feat:'18" black sport wheels · Heated front seats · Power driver seat · Aggressive sport styling'},
+    {name:'XLE Premium AWD',  sub:'XLE Premium · AWD · 236 hp',         msrp:37500,dest:1450,mpg:44,insYr:1567,miscYr:400,
+     feat:'SofTex heated seats · Power moonroof · Wireless charging · 12.9" touchscreen · Dual-zone climate ★'},
+    {name:'Woodland AWD',     sub:'Woodland · AWD · 236 hp · Rugged',   msrp:39900,dest:1450,mpg:39,insYr:1650,miscYr:400,
+     feat:'8.5" ground clearance · All-terrain tires · Rigid Industries LEDs · Raised roof rails · Tow hitch'},
+    {name:'XSE AWD',          sub:'XSE · AWD · 236 hp · Sport+',        msrp:41300,dest:1450,mpg:42,insYr:1700,miscYr:400,
+     feat:'Ultrasuede/leather seats · 12.9" touchscreen · JBL 9-spkr · Panoramic moonroof · Hands-free liftgate'},
+    {name:'Limited AWD',      sub:'Limited · AWD · 236 hp · Top',       msrp:43300,dest:1450,mpg:42,insYr:1767,miscYr:400,
+     feat:'Panoramic glass roof · JBL 9-spkr · Heated/ventilated seats · HUD · Digital rearview mirror'},
+  ]
+};
+
+const VKEYS=['cx5','cx50','rav4'];
+const VCOLS={cx5:'var(--cx5)',cx50:'var(--cx50)',rav4:'var(--rav4)'};
+
+let sel={cx5:2, cx50:0, rav4:3};
+let term=60, rate=5.5, years=3;
+
+// ── MATH ──
+function loanCalc(price, dp, r, n, holdM){
+  const L=Math.max(0,price-dp);
+  if(!L) return {pmt:0,bal:0};
+  const mo=r/100/12;
+  const pmt=mo<1e-9 ? L/n : L*mo*Math.pow(1+mo,n)/(Math.pow(1+mo,n)-1);
+  const p=Math.min(holdM,n);
+  const bal=mo<1e-9
+    ? Math.max(0,L-pmt*p)
+    : Math.max(0, L*Math.pow(1+mo,p)-pmt*(Math.pow(1+mo,p)-1)/mo);
+  return {pmt,bal};
+}
+
+function getV(k){ const t=TRIMS[k][sel[k]],price=t.msrp+t.dest;
+  return {price,msrp:t.msrp,dest:t.dest,mpg:t.mpg,insYr:t.insYr,miscYr:t.miscYr,
+    name:t.name,sub:t.sub,feat:t.feat}; }
+
+function calcForYear(k, dp, yrs){
+  const v=getV(k), holdM=yrs*12;
+  const {pmt,bal}=loanCalc(v.price,dp,rate,term,holdM);
+  const cnt=Math.min(holdM,term), paid=dp+pmt*cnt;
+  const depKey=k==='cx50'?'cx50':(k==='rav4'?'rav4':'cx5');
+  const dep=DEP[depKey][Math.min(yrs,8)-1];
+  const res=v.price*(1-dep);
+  const equity=res-bal, netFin=paid-equity;
+  const fuelY=(12000/v.mpg)*3.20;
+  const runCost=(fuelY+v.insYr+v.miscYr)*yrs;
+  const tcoVal=netFin+runCost;
+  return {pmt,bal,paid,equity,netFin,tcoVal,res,
+    fuelTotal:fuelY*yrs, insTotal:v.insYr*yrs, miscTotal:v.miscYr*yrs,
+    financed:v.price-dp, v};
+}
+
+// ── FORMAT ──
+const $=id=>document.getElementById(id);
+const f=n=>isNaN(n)||!isFinite(n)?'—':(n<0?'-$':'$')+Math.abs(Math.round(n)).toLocaleString();
+
+// ── APPLY CARD ──
+function applyCard(k, d){
+  const v=d.v, yr=years;
+  $('sub_'+k).textContent=v.sub;
+  $('feat_'+k).textContent=v.feat;
+  $('m_'+k).textContent='$'+v.msrp.toLocaleString();
+  $('d_'+k).textContent='$'+v.dest.toLocaleString();
+  $('tot_'+k).textContent='$'+v.price.toLocaleString();
+  $('fin_'+k).textContent=f(d.financed);
+  $('pmt_'+k).textContent=f(d.pmt);
+  $('trm_'+k).textContent=term;
+  $('rt_'+k).textContent=rate.toFixed(2);
+  $('res_'+k).textContent=f(d.res);
+  $('bal_'+k).textContent=f(d.bal);
+  $('paid_'+k).textContent=f(d.paid);
+  $('rem_'+k).textContent=f(d.bal);
+  $('bfin_'+k).textContent=f(d.netFin);
+  $('fuelAmt_'+k).textContent=f(d.fuelTotal);
+  $('insAmt_'+k).textContent=f(d.insTotal);
+  $('miscAmt_'+k).textContent=f(d.miscTotal);
+  if($('mpgTag_'+k)) $('mpgTag_'+k).textContent=v.mpg+' MPG';
+  if($('fuelLbl_'+k)) $('fuelLbl_'+k).textContent=`Fuel · ${v.mpg} MPG · ${yr>1?yr+'yr':'1yr'} · $3.20/gal`;
+  // Year labels
+  ['reslbl_','ballbl_','bkttl_','paidlbl_','tcolbl_'].forEach((pre,i)=>{
+    const el=$(pre+k); if(!el) return;
+    if(pre==='reslbl_') el.textContent=yr+'-Yr Residual';
+    else if(pre==='ballbl_') el.textContent='Bal @ '+yr*12+'mo';
+    else if(pre==='bkttl_') el.textContent=yr+'-Year Breakdown';
+    else if(pre==='paidlbl_') el.textContent='Paid × '+Math.min(yr*12,term)+' mo';
+    else if(pre==='tcolbl_') el.textContent=yr+'-Yr True Cost';
+  });
+  // Equity
+  ['eq_'+k,'eq2_'+k].forEach(id=>{
+    $(id).textContent=f(d.equity);
+    $(id).className=(id.startsWith('eq2')?'t-val ':'st-val ')+(d.equity>=0?'pos grn':'neg red').split(' ')[(id.startsWith('eq2')?0:0)];
+  });
+  $('eq_'+k).className='st-val '+(d.equity>=0?'pos':'neg');
+  $('eq2_'+k).className='t-val '+(d.equity>=0?'grn':'red');
+  $('tco_'+k).textContent=f(d.tcoVal);
+  // Card border
+  const card=$('crd_'+k),eqc=$('eqcell_'+k),tcoc=$('tcocell_'+k);
+  card.classList.remove('eq-pos','eq-neg','winner-card');
+  eqc.classList.remove('h-grn','h-red'); tcoc.classList.remove('h-grn','h-red');
+  if(d.equity<0){
+    card.classList.add('eq-neg'); eqc.classList.add('h-red'); tcoc.classList.add('h-red');
+    $('etag_'+k).textContent='⚠ Underwater';
+    $('etag_'+k).className='tag t-wrn';
+  } else {
+    card.classList.add('eq-pos'); eqc.classList.add('h-grn'); tcoc.classList.add('h-grn');
+    $('etag_'+k).textContent='+'+f(d.equity)+' equity';
+    $('etag_'+k).className='tag t-grn';
+  }
+}
+
+// ── BREAK-EVEN ──
+function buildBreakEvenTimeline(hybridKey, timelineId, resultId, trimLblId, dp){
+  const cx5v=getV('cx5'), hybv=getV(hybridKey);
+  $( trimLblId ).textContent='vs CX-5 '+cx5v.name;
+
+  let breakEvenYr=null;
+  const cells=[];
+  for(let y=1;y<=8;y++){
+    const tCx5=calcForYear('cx5',dp,y).tcoVal;
+    const tHyb=calcForYear(hybridKey,dp,y).tcoVal;
+    const diff=tHyb-tCx5; // positive = hybrid costs more, negative = hybrid wins
+    if(diff<=0 && breakEvenYr===null) breakEvenYr=y;
+    cells.push({y,diff,isCur:y===years,isBreak:y===breakEvenYr});
+  }
+
+  const maxDiff=Math.max(...cells.map(c=>Math.abs(c.diff)),1);
+  $(timelineId).innerHTML=cells.map(c=>{
+    const cls=c.diff<=0?'hybrid-wins':'cx5-wins';
+    const arrow=c.diff<=0?'▼':'▲';
+    const amt='$'+Math.abs(Math.round(c.diff)/1000).toFixed(1)+'k';
+    let extra=''; if(c.isBreak) extra+=' break-yr'; if(c.isCur) extra+=' cur-yr';
+    return`<div class="yr-cell ${cls}${extra}" title="${c.diff<=0?'Hybrid saves':'CX-5 cheaper'} $${Math.abs(Math.round(c.diff)).toLocaleString()} at yr ${c.y}">
+      <span class="yc-yr">YR ${c.y}${c.isBreak?' ⚡':''}</span>
+      <span class="yc-diff">${arrow} ${amt}</span>
+    </div>`;
+  }).join('');
+
+  const res=$(resultId);
+  if(breakEvenYr){
+    const savings=Math.abs(Math.round(calcForYear('cx5',dp,8).tcoVal - calcForYear(hybridKey,dp,8).tcoVal));
+    res.innerHTML=`<strong>Break-even at Year ${breakEvenYr}</strong> — Hybrid wins by <strong>${f(Math.abs(calcForYear('cx5',dp,years).tcoVal - calcForYear(hybridKey,dp,years).tcoVal))}</strong> at selected year ${years}`;
+    res.className=breakEvenYr<=years?'be-result good':'be-result';
+  } else {
+    const diff8=calcForYear(hybridKey,dp,8).tcoVal - calcForYear('cx5',dp,8).tcoVal;
+    res.innerHTML=`<strong>No break-even within 8 years</strong> — CX-5 leads by ${f(Math.abs(diff8))} at yr 8 · Try matching trim tiers`;
+    res.className='be-result bad';
+  }
+}
+
+// ── MAIN RECALC ──
+function recalc(){
+  const dp=Math.max(0,parseFloat($('dpIn').value)||0);
+  const cards={};
+  VKEYS.forEach(k=>{ cards[k]=calcForYear(k,dp,years); applyCard(k,cards[k]); });
+
+  // Bars
+  setTimeout(()=>{
+    const mxFin=Math.max(...VKEYS.map(k=>cards[k].netFin),1);
+    const mxFuel=Math.max(...VKEYS.map(k=>cards[k].fuelTotal),1);
+    const mxIns=Math.max(...VKEYS.map(k=>cards[k].insTotal),1);
+    const mxMisc=Math.max(...VKEYS.map(k=>cards[k].miscTotal),1);
+    VKEYS.forEach(k=>{
+      $('bf_'+k).style.width=Math.min(100,Math.max(0,cards[k].netFin/mxFin*82)).toFixed(1)+'%';
+      $('fuelBf_'+k).style.width=Math.min(100,cards[k].fuelTotal/mxFuel*80).toFixed(1)+'%';
+      $('insBf_'+k).style.width=Math.min(100,cards[k].insTotal/mxIns*80).toFixed(1)+'%';
+      $('miscBf_'+k).style.width=Math.min(100,cards[k].miscTotal/mxMisc*80).toFixed(1)+'%';
+    });
+  },60);
+
+  // Break-even
+  buildBreakEvenTimeline('cx50','beTimeline50','beResult50','be50trimLbl',dp);
+  buildBreakEvenTimeline('rav4','beTimelineRav4','beResultRav4','beRav4trimLbl',dp);
+
+  // Period summary
+  $('periodSummary').innerHTML=
+    `<span style="color:var(--gold);font-weight:600">${years}-year ownership</span> &nbsp;·&nbsp; `+
+    `${years*12} months · `+
+    (years*12<=term?`Loan active (${term-years*12} mo remain after sell)`:`Loan paid off at ${term} mo`);
+
+  // Winner
+  const tcos=VKEYS.map(k=>({k,t:cards[k].tcoVal})).sort((a,b)=>a.t-b.t);
+  const win=tcos[0].k;
+  $('crd_'+win).classList.add('winner-card');
+  const wNames={cx5:'CX-5 '+getV('cx5').name.split(' ').slice(0,2).join(' '),
+    cx50:'CX-50H '+getV('cx50').name.split(' ').slice(0,2).join(' '),
+    rav4:'RAV4 '+getV('rav4').name.split(' ').slice(0,2).join(' ')};
+  $('vTitle').innerHTML=`${years}-Year Verdict: <em style="color:${VCOLS[win]}">${wNames[win]} wins</em>`;
+  const wc=VCOLS[win];
+  $('trophyBadge').textContent='🏆 '+wNames[win];
+  Object.assign($('trophyBadge').style,{color:wc,borderColor:wc+'55',background:wc+'15'});
+
+  const savAmt=tcos[1].t-tcos[0].t;
+  $('svBadge').textContent=wNames[win].split(' ')[0]+' saves '+f(savAmt)+' vs runner-up';
+
+  // Comparison table
+  const nameMap={cx5:'CX-5',cx50:'CX-50H',rav4:'RAV4'};
+  const cats=[
+    {l:'Monthly Payment',     fn:k=>cards[k].pmt,      lo:true},
+    {l:'Net Financing Loss',  fn:k=>cards[k].netFin,   lo:true},
+    {l:'Fuel Cost',           fn:k=>cards[k].fuelTotal,lo:true},
+    {l:'Insurance',           fn:k=>cards[k].insTotal, lo:true},
+    {l:'Equity @ Trade',      fn:k=>cards[k].equity,   lo:false},
+    {l:years+'-Yr True Cost', fn:k=>cards[k].tcoVal,   lo:true},
+  ];
+  $('compBody').innerHTML=cats.map(c=>{
+    const vals=VKEYS.map(k=>({k,v:c.fn(k)}));
+    const best=(c.lo?vals.reduce((a,b)=>a.v<=b.v?a:b):vals.reduce((a,b)=>a.v>=b.v?a:b)).k;
+    const mx=Math.max(...vals.map(x=>Math.abs(x.v)),1);
+    const rows=VKEYS.map(kk=>{
+      const v=c.fn(kk),win=kk===best;
+      const col=v<0?'#ef4444':(win?VCOLS[kk]:'var(--muted)');
+      const w=(Math.abs(v)/mx*78).toFixed(1);
+      return`<div class="cbar-row">
+        <span class="cbar-lbl" style="color:${VCOLS[kk]}">${nameMap[kk]}</span>
+        <div class="cbar-track"><div class="cbar-fill" style="background:${col};width:${w}%"></div></div>
+        <span class="cbar-val" style="color:${col}">${f(v)}${win?'<span class="win-dot">✦</span>':''}</span>
+      </div>`;
+    }).join('');
+    return`<div class="crow"><div class="crow-lbl">${c.l}</div><div class="crow-bars">${rows}</div></div>`;
+  }).join('');
+}
+
+// ── CONTROLS ──
+function setTerm(t,btn){
+  term=t;
+  document.querySelectorAll('.tbtn').forEach(b=>{if(b.classList.contains('term-active'))b.classList.remove('term-active');});
+  btn.classList.add('term-active');
+  recalc();
+}
+function setYear(y,btn){
+  years=y;
+  document.querySelectorAll('.tbtn').forEach(b=>{if(b.classList.contains('yr-active'))b.classList.remove('yr-active');});
+  btn.classList.add('yr-active');
+  recalc();
+}
+function onRate(s){
+  rate=parseFloat(s.value);
+  $('rateDisp').innerHTML=rate.toFixed(2)+'<span>%</span>';
+  s.style.setProperty('--pct',(rate/15*100).toFixed(2)+'%');
+  recalc();
+}
+function onTrim(k,idx){ sel[k]=parseInt(idx); recalc(); }
+
+window.addEventListener('load',()=>{
+  $('rateSlider').style.setProperty('--pct',(5.5/15*100).toFixed(2)+'%');
+  recalc();
+});
+</script>
+</body>
+</html>
